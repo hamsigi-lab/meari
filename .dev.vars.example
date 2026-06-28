@@ -6,3 +6,6 @@ OPENROUTER_API_KEY=sk-or-xxx  # https://openrouter.ai/keys
 
 # 베타 초대코드(쉼표 구분). 비우면 누구나 가입(개발용).
 INVITE_CODES=meari-beta
+
+# 발화 피드 생성 트리거(/api/cron) 보호용 시크릿. 외부 Cron이 X-Cron-Secret 헤더로 호출.
+CRON_SECRET=change-me-please

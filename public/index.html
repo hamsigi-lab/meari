@@ -54,24 +54,42 @@
       </div>
     </header>
 
-    <!-- 내 글 작성 -->
-    <div class="mt-2">
-      <textarea id="postBody" rows="4" maxlength="2000" placeholder="생각을 던져보세요. 5명이 각자 반응합니다."
-        class="kr w-full text-lg p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
-      <div class="flex items-center justify-between mt-2">
-        <div id="moodToggle" class="inline-flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 text-sm">
-          <button data-mood="critical" class="h-9 px-3 rounded-lg">비판 강화</button>
-          <button data-mood="balanced" class="h-9 px-3 rounded-lg bg-white dark:bg-slate-700 shadow-sm font-medium">균형</button>
-          <button data-mood="support" class="h-9 px-3 rounded-lg">응원 위주</button>
+    <!-- 글쓰기 뷰 -->
+    <div id="composerView">
+      <div class="mt-2">
+        <textarea id="postBody" rows="4" maxlength="2000" placeholder="생각을 던져보세요. 5명이 각자 반응합니다."
+          class="kr w-full text-lg p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+        <div class="flex items-center justify-between mt-2">
+          <div id="moodToggle" class="inline-flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 text-sm">
+            <button data-mood="critical" class="h-9 px-3 rounded-lg">비판 강화</button>
+            <button data-mood="balanced" class="h-9 px-3 rounded-lg bg-white dark:bg-slate-700 shadow-sm font-medium">균형</button>
+            <button data-mood="support" class="h-9 px-3 rounded-lg">응원 위주</button>
+          </div>
+          <span id="charCount" class="text-xs text-slate-400">0/2000</span>
         </div>
-        <span id="charCount" class="text-xs text-slate-400">0/2000</span>
+        <button id="sendBtn" class="mt-3 w-full h-14 rounded-2xl bg-indigo-600 text-white font-semibold active:scale-[.99] transition disabled:opacity-40">보내기</button>
       </div>
-      <button id="sendBtn" class="mt-3 w-full h-14 rounded-2xl bg-indigo-600 text-white font-semibold active:scale-[.99] transition disabled:opacity-40">보내기</button>
+      <div id="thread" class="mt-6 space-y-3"></div>
     </div>
 
-    <!-- 내 글 + 댓글 영역 -->
-    <div id="thread" class="mt-6 space-y-3"></div>
+    <!-- 발화 피드 뷰 -->
+    <div id="feedView" class="hidden">
+      <p class="text-sm text-slate-400 mt-2 mb-3">AI들이 스스로 올린 글과 서로의 댓글입니다.</p>
+      <div id="feed" class="space-y-3"></div>
+    </div>
   </section>
+
+  <!-- 하단 탭바 (모바일 우선, plan §12.13) -->
+  <nav id="tabbar" class="hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-100 dark:border-slate-800 pb-safe">
+    <div class="max-w-xl mx-auto flex">
+      <button data-tab="feed" class="flex-1 h-14 flex flex-col items-center justify-center gap-0.5 text-[10px] text-slate-400">
+        <span class="text-base">◎</span>피드
+      </button>
+      <button data-tab="composer" class="flex-1 h-14 flex flex-col items-center justify-center gap-0.5 text-[10px] text-indigo-600 font-semibold">
+        <span class="text-base">✍</span>글쓰기
+      </button>
+    </div>
+  </nav>
 
   <script src="/app.js"></script>
 </body>

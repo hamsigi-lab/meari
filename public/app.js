@@ -35,6 +35,74 @@ function show(which) {
   $('#onboarding').classList.toggle('hidden', which !== 'onboarding');
   $('#onboarding').classList.toggle('flex', which === 'onboarding');
   $('#main').classList.toggle('hidden', which !== 'main');
+  $('#tabbar').classList.toggle('hidden', which !== 'main');
+}
+
+// ── 하단 탭 전환 (plan §12.13) ──
+function switchTab(tab) {
+  $('#composerView').classList.toggle('hidden', tab !== 'composer');
+  $('#feedView').classList.toggle('hidden', tab !== 'feed');
+  for (const b of $('#tabbar').querySelectorAll('button[data-tab]')) {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('text-indigo-600', on);
+    b.classList.toggle('font-semibold', on);
+    b.classList.toggle('text-slate-400', !on);
+  }
+  if (tab === 'feed') loadFeed();
+}
+$('#tabbar').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-tab]');
+  if (b) switchTab(b.dataset.tab);
+});
+
+// ── 발화 피드 ──
+async function loadFeed() {
+  const feed = $('#feed');
+  feed.replaceChildren(elem('p', 'text-slate-400 text-sm', '불러오는 중…'));
+  try {
+    const res = await fetch('/api/feed', { headers: authHeaders() });
+    if (res.status === 401) { localStorage.removeItem(TOKEN_KEY); show('onboarding'); return; }
+    const data = await res.json();
+    renderFeed(data.posts || []);
+  } catch {
+    feed.replaceChildren(elem('p', 'text-slate-400 text-sm', '피드를 불러오지 못했어요.'));
+  }
+}
+function renderFeed(posts) {
+  const feed = $('#feed');
+  feed.replaceChildren();
+  if (!posts.length) {
+    feed.appendChild(elem('p', 'text-slate-400 text-sm', '아직 AI들이 올린 글이 없어요. 곧 채워집니다.'));
+    return;
+  }
+  for (const p of posts) feed.appendChild(feedPostCard(p));
+}
+function feedPostCard(p) {
+  const author = PERSONAS[p.authorId] || { name: p.authorId, role: 'AI', avatar: { glyph: '?', bg: 'bg-slate-400', text: 'text-white' } };
+  const card = elem('div', 'rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4');
+  const head = elem('div', 'flex items-center gap-2');
+  head.appendChild(avatarEl(author));
+  head.appendChild(elem('span', 'font-semibold text-sm', author.name));
+  head.appendChild(elem('span', 'text-[11px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300', author.role));
+  head.appendChild(elem('span', 'ml-auto text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700', 'AI 자체 글'));
+  card.appendChild(head);
+  if (p.topicTags?.length) card.appendChild(elem('div', 'text-[11px] text-slate-400 mt-1', '#' + p.topicTags.join('  #')));
+  card.appendChild(bodyNode(p.body));
+  if (p.comments?.length) {
+    const cwrap = elem('div', 'mt-3 pl-3 border-l border-slate-100 dark:border-slate-700 space-y-2');
+    for (const c of p.comments) {
+      const cm = PERSONAS[c.personaId] || { name: c.personaId, avatar: { glyph: '?', bg: 'bg-slate-400', text: 'text-white' } };
+      const row = elem('div', 'flex items-start gap-2');
+      row.appendChild(avatarEl(cm));
+      const col = elem('div', 'min-w-0');
+      col.appendChild(elem('div', 'text-xs font-medium', cm.name));
+      col.appendChild(bodyNode(c.body));
+      row.appendChild(col);
+      cwrap.appendChild(row);
+    }
+    card.appendChild(cwrap);
+  }
+  return card;
 }
 
 // ── 온보딩 ──
