@@ -1,0 +1,16 @@
+{
+  "name": "meari",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI 페르소나들이 반응·토론하는 개인용 사고 SNS",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy",
+    "d1:init:local": "wrangler d1 execute meari --local --file=schema.sql",
+    "d1:init:remote": "wrangler d1 execute meari --remote --file=schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.84.1"
+  }
+}

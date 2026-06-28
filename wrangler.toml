@@ -1,0 +1,20 @@
+name = "meari"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "public"
+
+# Cloudflare D1 (계정·글·댓글·피드·사용량)
+# database_id는 `npx wrangler d1 create meari` 후 출력값으로 채울 것.
+[[d1_databases]]
+binding = "DB"
+database_name = "meari"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# 발화 피드 자동 생성 (공유 피드, plan §14.8) — 무료 Cron
+# 다음 이터레이션에서 scheduled 핸들러 구현 후 활성화.
+# [triggers]
+# crons = ["0 */3 * * *"]
+
+# ── 비밀키는 여기 두지 않는다 (레포 커밋 금지) ──
+# 로컬:  .dev.vars  (gitignore됨)
+# 배포:  npx wrangler pages secret put GROQ_API_KEY  등
+#   GROQ_API_KEY / GEMINI_API_KEY / OPENROUTER_API_KEY

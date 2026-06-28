@@ -1,0 +1,21 @@
+# 비밀/로컬 환경 — 절대 커밋 금지
+.dev.vars
+.dev.vars.*
+*.local
+.env
+.env.*
+
+# Cloudflare / wrangler
+.wrangler/
+dist/
+
+# 의존성
+node_modules/
+
+# OS / 에디터
+.DS_Store
+*.log
+
+# 에이전트 내부 상태(공개 레포에 불필요)
+.claude/
+team/
