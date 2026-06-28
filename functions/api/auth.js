@@ -31,7 +31,8 @@ export async function onRequestPost({ request, env }) {
         .bind(accountId, '[]', '[]', 'balanced'),
     ]);
   } catch (e) {
-    return json({ error: 'db_error', detail: String(e).slice(0, 200) }, 500);
+    console.error('auth db_error', e); // 서버 로그에만 — 클라이언트엔 코드만(QA C-2)
+    return json({ error: 'db_error' }, 500);
   }
 
   return json({ token, accountId });
