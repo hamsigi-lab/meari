@@ -1,9 +1,10 @@
-# 비밀/로컬 환경 — 절대 커밋 금지
+# 비밀/로컬 환경 — 절대 커밋 금지 (단 .example 템플릿은 포함)
 .dev.vars
-.dev.vars.*
+.dev.vars.local
 *.local
 .env
 .env.*
+!.dev.vars.example
 
 # Cloudflare / wrangler
 .wrangler/

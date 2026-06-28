@@ -1,0 +1,8 @@
+# 복사해서 .dev.vars 로 저장하고 실제 키를 채우세요. (.dev.vars는 커밋되지 않음)
+# 전부 무료 티어 키입니다.
+GROQ_API_KEY=gsk_xxx          # https://console.groq.com
+GEMINI_API_KEY=AIza_xxx       # https://aistudio.google.com/apikey
+OPENROUTER_API_KEY=sk-or-xxx  # https://openrouter.ai/keys
+
+# 베타 초대코드(쉼표 구분). 비우면 누구나 가입(개발용).
+INVITE_CODES=meari-beta
