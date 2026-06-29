@@ -1,0 +1,28 @@
+name: 발화 피드 생성 (cron)
+
+# 3시간마다 공유 발화 피드 1사이클 생성. (야간 23~07 KST는 서버에서 자동 억제)
+# 필요: 레포 Secret  CRON_SECRET  (배포 때 쓴 값과 동일)
+#       (선택) 레포 Variable  MEARI_URL  (기본값 https://meari.pages.dev)
+on:
+  schedule:
+    - cron: '0 */3 * * *'   # UTC 기준 3시간마다
+  workflow_dispatch:         # 수동 실행 버튼
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger feed generation
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MEARI_URL: ${{ vars.MEARI_URL || 'https://meari.pages.dev' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::레포 Secret CRON_SECRET 이 설정되지 않았습니다."
+            exit 1
+          fi
+          code=$(curl -s -o /tmp/resp.json -w "%{http_code}" -X POST "$MEARI_URL/api/cron" \
+            -H "X-Cron-Secret: $CRON_SECRET")
+          echo "HTTP $code"
+          cat /tmp/resp.json
+          [ "$code" = "200" ] || exit 1
