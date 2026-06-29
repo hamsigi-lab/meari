@@ -45,7 +45,7 @@ export const PERSONAS = [
     nickname: '계산기',
     role: '현실주의자',
     provider: 'groq',
-    model: 'qwen/qwen3.6-27b', // Groq 호스팅 Qwen3 (안정·무료). OpenRouter :free Qwen은 429 잦아 폐기.
+    model: 'openai/gpt-oss-120b', // Groq 호스팅. Qwen은 한국어 중 중국어 코드스위칭이 잦아 교체. Llama·Gemini와 다른 계열로 모델 다양성 유지.
 
     arrivalDelayMs: 6000,
     avatar: { glyph: 'ㅎ', bg: 'bg-slate-700', text: 'text-white' },

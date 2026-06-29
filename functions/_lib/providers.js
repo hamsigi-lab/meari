@@ -48,8 +48,11 @@ async function callOpenAICompat(provider, model, system, userText, maxTokens, en
     // 베타: 개인정보 미입력 전제로 :free(학습 허용) 모델 허용.
     // ⚠️ 본격 공개(plan §14.7) 시: body.provider = { data_collection: 'deny' };
   }
-  // Qwen3 등 reasoning 모델: Groq에서 추론 끄기(토큰 절약 + <think> 방지)
-  if (provider === 'groq' && /qwen/i.test(model)) body.reasoning_effort = 'none';
+  // Groq reasoning 모델: 추론 최소화(토큰 절약 + <think> 방지). gpt-oss는 'none' 불가 → 'low'.
+  if (provider === 'groq') {
+    if (/qwen/i.test(model)) body.reasoning_effort = 'none';
+    else if (/gpt-oss/i.test(model)) body.reasoning_effort = 'low';
+  }
 
   const res = await fetch(ENDPOINTS[provider], { method: 'POST', headers, body: JSON.stringify(body) });
   if (!res.ok) throw new ProviderError(provider, res.status, await safeText(res));
