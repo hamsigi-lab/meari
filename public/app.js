@@ -197,13 +197,15 @@ async function send() {
     }
 
     const byId = Object.fromEntries(data.comments.map((c) => [c.personaId, c]));
+    const cardById = {}; // commentId -> 카드 엘리먼트 (대댓글 부착용)
     for (const m of ordered) {
       const c = byId[m.id];
       const slot = slots[m.id];
       const wait = Math.max((m.arrivalDelayMs || 0) - (Date.now() - submittedAt), 250);
       if (!c) setTimeout(() => replaceWithError(slot, m), wait); // 실패 카드로 교체(m-6)
-      else setTimeout(() => revealComment(slot, m, c), wait);
+      else setTimeout(() => { cardById[c.id] = revealComment(slot, m, c); }, wait);
     }
+    runChain(data.postId, data.comments, submittedAt, cardById); // 대댓글 체이닝(논쟁)
     postsToday++;
     $('#quota').textContent = `오늘 ${postsToday}/30`;
     ta.value = '';
@@ -246,6 +248,41 @@ function revealComment(slot, meta, c) {
   card.appendChild(header);
   card.appendChild(bodyNode(c.body));
   slot.replaceWith(card);
+  return card;
+}
+
+// 대댓글 체이닝: 첫 댓글 후 /api/chain 호출 → 부모 댓글 아래 들여쓰기로 표시
+async function runChain(postId, comments, submittedAt, cardById) {
+  if (!postId) return;
+  let data;
+  try {
+    const res = await fetch('/api/chain', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ postId }) });
+    if (!res.ok) return;
+    data = await res.json();
+  } catch { return; }
+  const parentDelay = Object.fromEntries(comments.map((c) => [c.id, c.arrivalDelayMs || 0]));
+  (data.replies || []).forEach((rep, i) => {
+    const base = (parentDelay[rep.parentCommentId] || 0) + 2500 + i * 900;
+    const wait = Math.max(base - (Date.now() - submittedAt), 300);
+    setTimeout(() => appendReply(cardById, rep), wait);
+  });
+}
+
+function appendReply(cardById, rep) {
+  const parent = cardById[rep.parentCommentId];
+  if (!parent) return;
+  const meta = PERSONAS[rep.personaId] || { name: rep.personaId, avatar: { glyph: '?', bg: 'bg-slate-400', text: 'text-white' } };
+  const targetName = PERSONAS[rep.replyToPersonaId]?.name || '';
+  const wrap = elem('div', 'fadeup mt-3 ml-5 pl-3 border-l-2 border-slate-200 dark:border-slate-600');
+  const head = elem('div', 'flex items-center gap-1.5');
+  head.appendChild(avatarEl(meta));
+  head.appendChild(elem('span', 'font-medium text-xs', meta.name));
+  if (targetName) head.appendChild(elem('span', 'text-[11px] text-slate-400', `↳ ${targetName}에게`));
+  const pl = providerLabel(rep.provider);
+  if (pl) head.appendChild(elem('span', 'ml-auto text-[10px] text-slate-400', pl));
+  wrap.appendChild(head);
+  wrap.appendChild(bodyNode(rep.body));
+  parent.appendChild(wrap);
 }
 
 // ── 페르소나 메타 로드 ──
