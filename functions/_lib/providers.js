@@ -23,6 +23,8 @@ const FALLBACK_MODEL = {
 const FALLBACK_ORDER = ['gemini', 'groq', 'qwen'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// 한자(중국어 간체 포함)·일본어 가나 탐지 — 누출 시 재생성용
+const CJK = /[㐀-鿿぀-ヿ]/;
 
 // OpenAI 호환(Groq·OpenRouter) 호출
 async function callOpenAICompat(provider, model, system, userText, maxTokens, env) {
@@ -39,7 +41,7 @@ async function callOpenAICompat(provider, model, system, userText, maxTokens, en
       { role: 'user', content: userText },
     ],
     max_tokens: maxTokens,
-    temperature: 0.75, // 자유롭게(0.6은 사고가 납작해짐). 외국어 누출은 프롬프트로 관리
+    temperature: 0.7, // 자유롭게(0.6은 사고가 납작해짐). 외국어 누출은 프롬프트로 관리
   };
   if (provider === 'qwen') {
     // OpenRouter 식별 헤더(권장). (현재는 폴백 경로로만 사용)
@@ -71,7 +73,7 @@ async function callGemini(model, system, userText, maxTokens, env) {
     systemInstruction: { parts: [{ text: system }] },
     contents: [{ role: 'user', parts: [{ text: userText }] }],
     // thinkingBudget:0 → 2.5 Flash 내부 추론이 출력 토큰을 잡아먹어 잘리는 문제 방지
-    generationConfig: { maxOutputTokens: maxTokens, temperature: 0.75, thinkingConfig: { thinkingBudget: 0 } },
+    generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } },
   };
   const res = await fetch(ENDPOINTS.gemini(model, key), {
     method: 'POST',
@@ -114,7 +116,14 @@ export async function callPersona(persona, system, userText, env) {
     tried.add(provider);
     const model = provider === persona.provider ? persona.model : FALLBACK_MODEL[provider];
     try {
-      const text = await callModel(provider, model, system, userText, persona.maxTokens, env);
+      let text = await callModel(provider, model, system, userText, persona.maxTokens, env);
+      // 외국어(중국어/일본어) 누출 시 1회만 재생성 (확률적 — 보통 깨끗해짐)
+      if (CJK.test(text)) {
+        try {
+          const t2 = await callModel(provider, model, system, userText, persona.maxTokens, env);
+          if (!CJK.test(t2)) text = t2;
+        } catch { /* 재시도 실패 무시 */ }
+      }
       return { text, provider, fellBack: provider !== persona.provider };
     } catch (e) {
       lastErr = e;
