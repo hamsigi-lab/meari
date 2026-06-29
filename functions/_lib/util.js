@@ -35,8 +35,10 @@ export async function getAccount(request, env) {
 
 // 분위기 다이얼 → 시스템 프롬프트 보강 (plan §3.2) — 단 역할/캐릭터는 유지
 export function moodInstruction(mood) {
-  if (mood === 'critical') return '\n[이번 분위기] 비판을 평소보다 한 단계 강하게. 단 네 역할/말투는 유지.';
-  if (mood === 'support') return '\n[이번 분위기] 평소보다 따뜻하고 격려 위주로. 단 네 역할/말투는 유지.';
+  if (mood === 'critical')
+    return '\n\n[이번 분위기: 비판 강화] 평소보다 확실히 더 날카롭고 냉정하게. 좋게 포장하지 말고 약점·허점·반론을 강하게 짚어라. (단 네 고유 역할과 말투는 그대로 유지)';
+  if (mood === 'support')
+    return '\n\n[이번 분위기: 응원 위주] 평소보다 확실히 더 따뜻하고 너그럽게. 가능성·좋은 점·다음 한 걸음을 부각해 힘을 실어줘라. (단 네 고유 역할과 말투는 그대로 유지)';
   return '';
 }
 
