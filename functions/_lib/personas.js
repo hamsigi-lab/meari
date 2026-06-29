@@ -45,7 +45,7 @@ export const PERSONAS = [
     nickname: '계산기',
     role: '현실주의자',
     provider: 'qwen',
-    model: 'qwen/qwen3-235b-a22b:free', // ⚠️ openrouter.ai/models에서 현재 :free Qwen3 ID 확인 후 갱신
+    model: 'qwen/qwen3-next-80b-a3b-instruct:free', // OpenRouter :free Qwen3 (확인됨 2026-06)
 
     arrivalDelayMs: 6000,
     avatar: { glyph: 'ㅎ', bg: 'bg-slate-700', text: 'text-white' },

@@ -14,11 +14,11 @@ const ENDPOINTS = {
 const ENV_KEY = { groq: 'GROQ_API_KEY', qwen: 'OPENROUTER_API_KEY', gemini: 'GEMINI_API_KEY' };
 
 // 폴백 기본 모델 (한도 여유 순: gemini > groq > qwen, §14.3)
-// ⚠️ 모델 ID는 2026-06 기준. OpenRouter `:free` Qwen3 ID는 openrouter.ai/models에서 확인 후 갱신.
+// 모델 ID는 2026-06 기준.
 const FALLBACK_MODEL = {
   gemini: 'gemini-2.5-flash-lite',
   groq: 'llama-3.1-8b-instant',
-  qwen: 'qwen/qwen3-235b-a22b:free',
+  qwen: 'qwen/qwen3-next-80b-a3b-instruct:free',
 };
 const FALLBACK_ORDER = ['gemini', 'groq', 'qwen'];
 
