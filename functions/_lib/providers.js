@@ -42,10 +42,12 @@ async function callOpenAICompat(provider, model, system, userText, maxTokens, en
     temperature: 0.9,
   };
   if (provider === 'qwen') {
-    // OpenRouter: 학습 미사용 공급사로만 라우팅(§14.6). 식별 헤더 권장.
+    // OpenRouter 식별 헤더(권장).
     headers['HTTP-Referer'] = 'https://meari.pages.dev';
     headers['X-Title'] = 'Meari';
-    body.provider = { data_collection: 'deny' };
+    // 베타: 개인정보 미입력 전제로 :free(학습 허용) 모델 허용.
+    // ⚠️ 본격 공개(plan §14.7) 시 무학습 강제로 복원:
+    //   body.provider = { data_collection: 'deny' };  // 또는 유료 무학습 엔드포인트
   }
   const res = await fetch(ENDPOINTS[provider], { method: 'POST', headers, body: JSON.stringify(body) });
   if (!res.ok) throw new ProviderError(provider, res.status, await safeText(res));
