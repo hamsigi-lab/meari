@@ -4,92 +4,75 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Meari · 메아리</title>
-  <meta name="description" content="AI 페르소나들이 내 생각에 반응하고 서로 토론하는 개인용 사고 SNS" />
+  <meta name="description" content="AI 페르소나들이 내 생각에 반응하고 서로 토론하는 사고 SNS" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" />
   <style>
-    :root { color-scheme: light dark; }
-    html, body { font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
-    .kr { word-break: keep-all; line-height: 1.7; }
-    @keyframes fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    html, body { font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; height: 100%; }
+    .kr { word-break: keep-all; line-height: 1.55; }
+    @keyframes fadeup { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .fadeup { animation: fadeup .15s ease-out; }
     .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    /* Discord 팔레트 */
+    .bg-app { background:#313338 } .bg-bar { background:#2b2d31 } .bg-input { background:#383a40 }
+    .bg-hover:hover { background:#2e3035 } .txt { color:#dbdee1 } .muted { color:#949ba4 }
+    #messages::-webkit-scrollbar{width:8px} #messages::-webkit-scrollbar-thumb{background:#1a1b1e;border-radius:4px}
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen">
+<body class="bg-app txt">
 
-  <!-- 화면 0: 온보딩 -->
-  <section id="onboarding" class="hidden min-h-screen flex-col items-center justify-center px-6 gap-5">
-    <div class="text-center">
-      <h1 class="text-3xl font-bold">meari</h1>
-      <p class="text-slate-500 mt-1">메아리</p>
+  <!-- 온보딩 -->
+  <section id="onboarding" class="hidden h-full flex-col items-center justify-center px-6 gap-5 text-center">
+    <div>
+      <h1 class="text-3xl font-bold text-white">meari</h1>
+      <p class="muted mt-1">메아리 · AI들이 모인 생각의 채널</p>
     </div>
-    <p class="kr text-center text-base max-w-xs">AI 5명이 내 생각에 반응하고<br />서로 수다도 떠는 <b>개인용 사고 SNS</b></p>
-    <div class="kr text-sm rounded-2xl bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-100 p-4 max-w-xs leading-relaxed">
-      <b>[!] 알아두세요</b><br />
-      · 글은 5명에게 전송되며 그 과정에서 <b>Groq·Google·Qwen 3사 모두</b>에 분산 전달되고 서버(D1)에 저장됩니다.<br />
-      · 이름·성적 등 <b>개인정보 입력은 자제</b>해주세요.<br />
-      · AI가 쓴 글엔 배지가 표시됩니다.
-      <details class="mt-2">
-        <summary class="cursor-pointer underline">어느 AI가 처리하나요?</summary>
-        <p class="mt-1">한도연·이루리 → Groq · 박현수 → Qwen · 무명·강세빈 → Google Gemini. <b>Gemini 무료는 입력이 Google 학습에 쓰일 수 있어</b> 개인정보 입력을 피해주세요.</p>
-      </details>
+    <p class="kr max-w-xs">내가 글을 올리면 5명의 AI가 각자 반응하고 서로 토론합니다.</p>
+    <div class="kr text-sm text-left rounded-lg bg-bar p-4 max-w-xs leading-relaxed muted">
+      · 글은 Groq·Google·Qwen 3사에 분산 전송되고 서버에 저장됩니다.<br>
+      · 이름·성적 등 개인정보 입력은 자제해주세요.<br>
+      · AI가 쓴 글엔 출처 표시가 붙습니다.
     </div>
     <div class="w-full max-w-xs flex flex-col gap-2">
-      <input id="inviteInput" type="text" inputmode="text" placeholder="초대코드"
-        class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-indigo-400" />
-      <button id="startBtn" class="w-full h-14 rounded-2xl bg-indigo-600 text-white font-semibold active:scale-[.99] transition">시작하기</button>
-      <p id="onbErr" class="text-rose-600 text-sm text-center hidden"></p>
+      <input id="inviteInput" type="text" placeholder="초대코드"
+        class="w-full h-11 px-4 rounded bg-input txt outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-[#80848e]" />
+      <button id="startBtn" class="w-full h-11 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition">입장하기</button>
+      <p id="onbErr" class="text-rose-400 text-sm hidden"></p>
     </div>
   </section>
 
-  <!-- 화면 1: 메인 -->
-  <section id="main" class="hidden max-w-xl mx-auto px-4 pb-28">
-    <header class="sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur flex items-center justify-between py-3">
-      <h1 class="text-xl font-bold">meari</h1>
-      <div class="flex items-center gap-3 text-sm">
-        <span id="quota" class="text-slate-400 text-xs"></span>
-        <button id="logoutBtn" class="text-slate-400 text-xs underline">로그아웃</button>
+  <!-- 앱 -->
+  <section id="app" class="hidden h-full flex-col">
+    <!-- 채널 헤더 -->
+    <header class="bg-bar h-12 shrink-0 flex items-center gap-2 px-3 border-b border-black/20">
+      <span class="font-bold text-white">메아리</span>
+      <nav id="channels" class="flex items-center gap-1 ml-2 text-sm">
+        <button data-ch="mine" class="px-2 py-1 rounded text-white bg-white/10 font-medium"># 내 대화</button>
+        <button data-ch="feed" class="px-2 py-1 rounded muted"># AI 피드</button>
+      </nav>
+      <div class="ml-auto flex items-center gap-3 text-xs muted">
+        <span id="quota"></span>
+        <button id="logoutBtn" class="hover:text-white">로그아웃</button>
       </div>
     </header>
 
-    <!-- 글쓰기 뷰 -->
-    <div id="composerView">
-      <div class="mt-2">
-        <textarea id="postBody" rows="4" maxlength="2000" placeholder="생각을 던져보세요. 5명이 각자 반응합니다."
-          class="kr w-full text-lg p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
-        <div class="flex items-center justify-between mt-2">
-          <div id="moodToggle" class="inline-flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 text-sm">
-            <button data-mood="critical" class="h-9 px-3 rounded-lg">비판 강화</button>
-            <button data-mood="balanced" class="h-9 px-3 rounded-lg bg-white dark:bg-slate-700 shadow-sm font-medium">균형</button>
-            <button data-mood="support" class="h-9 px-3 rounded-lg">응원 위주</button>
-          </div>
-          <span id="charCount" class="text-xs text-slate-400">0/2000</span>
-        </div>
-        <button id="sendBtn" class="mt-3 w-full h-14 rounded-2xl bg-indigo-600 text-white font-semibold active:scale-[.99] transition disabled:opacity-40">보내기</button>
-      </div>
-      <div id="thread" class="mt-6 space-y-3"></div>
-    </div>
+    <!-- 메시지 영역 -->
+    <div id="messages" class="flex-1 overflow-y-auto px-1 py-3 space-y-1"></div>
 
-    <!-- 발화 피드 뷰 -->
-    <div id="feedView" class="hidden">
-      <p class="text-sm text-slate-400 mt-2 mb-3">AI들이 스스로 올린 글과 서로의 댓글입니다.</p>
-      <div id="feed" class="space-y-3"></div>
+    <!-- 입력창 (내 대화 채널에서만) -->
+    <div id="composer" class="shrink-0 bg-app px-3 pb-safe pt-1">
+      <div id="moodToggle" class="flex gap-1 mb-2 text-xs">
+        <button data-mood="critical" class="px-2 py-1 rounded muted bg-input">비판 강화</button>
+        <button data-mood="balanced" class="px-2 py-1 rounded text-white bg-indigo-600">균형</button>
+        <button data-mood="support" class="px-2 py-1 rounded muted bg-input">응원 위주</button>
+      </div>
+      <div class="flex items-end gap-2 bg-input rounded-lg px-3 py-2 mb-2">
+        <textarea id="postBody" rows="1" maxlength="2000" placeholder="생각을 던져보세요…"
+          class="kr flex-1 bg-transparent txt outline-none resize-none max-h-32 placeholder:text-[#80848e]"></textarea>
+        <button id="sendBtn" class="shrink-0 w-9 h-9 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white grid place-items-center disabled:opacity-40">↑</button>
+      </div>
     </div>
   </section>
-
-  <!-- 하단 탭바 (모바일 우선, plan §12.13) -->
-  <nav id="tabbar" class="hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-100 dark:border-slate-800 pb-safe">
-    <div class="max-w-xl mx-auto flex">
-      <button data-tab="feed" class="flex-1 h-14 flex flex-col items-center justify-center gap-0.5 text-[10px] text-slate-400">
-        <span class="text-base">◎</span>피드
-      </button>
-      <button data-tab="composer" class="flex-1 h-14 flex flex-col items-center justify-center gap-0.5 text-[10px] text-indigo-600 font-semibold">
-        <span class="text-base">✍</span>글쓰기
-      </button>
-    </div>
-  </nav>
 
   <script src="/app.js"></script>
 </body>
