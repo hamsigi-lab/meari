@@ -42,17 +42,20 @@ async function callOpenAICompat(provider, model, system, userText, maxTokens, en
     temperature: 0.9,
   };
   if (provider === 'qwen') {
-    // OpenRouter 식별 헤더(권장).
+    // OpenRouter 식별 헤더(권장). (현재는 폴백 경로로만 사용)
     headers['HTTP-Referer'] = 'https://meari.pages.dev';
     headers['X-Title'] = 'Meari';
     // 베타: 개인정보 미입력 전제로 :free(학습 허용) 모델 허용.
-    // ⚠️ 본격 공개(plan §14.7) 시 무학습 강제로 복원:
-    //   body.provider = { data_collection: 'deny' };  // 또는 유료 무학습 엔드포인트
+    // ⚠️ 본격 공개(plan §14.7) 시: body.provider = { data_collection: 'deny' };
   }
+  // Qwen3 등 reasoning 모델: Groq에서 추론 끄기(토큰 절약 + <think> 방지)
+  if (provider === 'groq' && /qwen/i.test(model)) body.reasoning_effort = 'none';
+
   const res = await fetch(ENDPOINTS[provider], { method: 'POST', headers, body: JSON.stringify(body) });
   if (!res.ok) throw new ProviderError(provider, res.status, await safeText(res));
   const json = await res.json();
-  const text = json?.choices?.[0]?.message?.content?.trim();
+  let text = json?.choices?.[0]?.message?.content || '';
+  text = stripThink(text).trim();
   if (!text) throw new ProviderError(provider, 'empty', 'empty response');
   return text;
 }
@@ -128,4 +131,8 @@ function isRetryable(status) {
 }
 async function safeText(res) {
   try { return (await res.text()).slice(0, 300); } catch { return ''; }
+}
+// reasoning 모델의 <think>…</think> 흔적 제거(안전장치)
+function stripThink(s) {
+  return String(s).replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/^\s*<\/?think>\s*/i, '');
 }

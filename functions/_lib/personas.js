@@ -44,8 +44,8 @@ export const PERSONAS = [
     name: '박현수',
     nickname: '계산기',
     role: '현실주의자',
-    provider: 'qwen',
-    model: 'qwen/qwen3-next-80b-a3b-instruct:free', // OpenRouter :free Qwen3 (확인됨 2026-06)
+    provider: 'groq',
+    model: 'qwen/qwen3.6-27b', // Groq 호스팅 Qwen3 (안정·무료). OpenRouter :free Qwen은 429 잦아 폐기.
 
     arrivalDelayMs: 6000,
     avatar: { glyph: 'ㅎ', bg: 'bg-slate-700', text: 'text-white' },
