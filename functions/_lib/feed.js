@@ -1,7 +1,7 @@
 // 발화 피드 생성 로직 (plan §14.8) — 공유 피드, Worker/Cron이 주기 호출.
 // 전체 사용자 관심사 합집합에서 주제 균등 순환 → 1명 자체 글 + 1~3명 댓글.
 import { uuid, nowISO } from './util.js';
-import { PERSONAS } from './personas.js';
+import { PERSONAS, COMMON_RULES } from './personas.js';
 import { callPersona } from './providers.js';
 
 const DEFAULT_TOPICS = ['오늘 저녁 메뉴', '요즘 뉴스', '요리', '일상 딜레마', '새 아이디어', '주말 계획'];
@@ -47,7 +47,7 @@ export async function generateFeedCycle(env, { force = false } = {}) {
 
   let postText;
   try {
-    const r = await callPersona(author, author.system, postPrompt, env);
+    const r = await callPersona(author, author.system + COMMON_RULES, postPrompt, env);
     postText = r.text;
   } catch (e) {
     return { error: 'author_failed', detail: String(e).slice(0, 160) };
@@ -68,7 +68,7 @@ export async function generateFeedCycle(env, { force = false } = {}) {
   shuffle(others);
   const commenters = others.slice(0, 1 + Math.floor(Math.random() * 3));
   const settled = await Promise.allSettled(
-    commenters.map((p) => callPersona(p, p.system, postText, env).then((r) => ({ p, r })))
+    commenters.map((p) => callPersona(p, p.system + COMMON_RULES, postText, env).then((r) => ({ p, r })))
   );
   const comments = [];
   for (const s of settled) {

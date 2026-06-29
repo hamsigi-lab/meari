@@ -102,6 +102,10 @@ export const PERSONAS = [
 
 export const PERSONA_BY_ID = Object.fromEntries(PERSONAS.map((p) => [p.id, p]));
 
+// 모든 페르소나에 공통으로 덧붙이는 출력 규칙 (한글 전용)
+export const COMMON_RULES =
+  '\n[필수 공통] 반드시 한글로만 작성한다. 한자(漢字)·일본식 한자 표기 금지 — 예: 浪費→낭비, 時間→시간, 問題→문제, 效果→효과. 영어는 꼭 필요한 고유명사에만 허용.';
+
 // 클라이언트에 내려보낼 안전한 메타(시스템 프롬프트 제외)
 export function publicPersonaMeta() {
   return PERSONAS.map(({ id, name, nickname, role, arrivalDelayMs, avatar, isSynthesizer }) => ({

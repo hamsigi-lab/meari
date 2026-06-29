@@ -7,7 +7,7 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "meari"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "988f08d2-3882-4132-9101-a94dd761eae5"
 
 # 발화 피드 자동 생성 (공유 피드, plan §14.8) — 무료 Cron
 # 다음 이터레이션에서 scheduled 핸들러 구현 후 활성화.

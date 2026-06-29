@@ -1,7 +1,7 @@
 // POST /api/comment — 내 글 작성 → 5명 페르소나 fan-out 댓글 (plan §6.3 사용자 글 반응 루프)
 // body: { body, mood }  →  { postId, comments[], errors[] }
 import { json, uuid, nowISO, LIMITS, getAccount, moodInstruction, usageStatement, dailyPostCount, DAILY_POST_CAP } from '../_lib/util.js';
-import { PERSONAS } from '../_lib/personas.js';
+import { PERSONAS, COMMON_RULES } from '../_lib/personas.js';
 import { callPersona } from '../_lib/providers.js';
 
 export async function onRequestPost({ request, env }) {
@@ -34,7 +34,7 @@ export async function onRequestPost({ request, env }) {
 
   // 5명 병렬 fan-out (3사 라우팅 + 폴백). 일부 실패해도 나머지는 진행.
   const settled = await Promise.allSettled(
-    PERSONAS.map((p) => callPersona(p, p.system + moodSys, body, env))
+    PERSONAS.map((p) => callPersona(p, p.system + COMMON_RULES + moodSys, body, env))
   );
 
   // 글 저장 + 댓글 + 사용량을 한 배치(트랜잭션)로 — 원자성·라운드트립 절감(QA C-3)
