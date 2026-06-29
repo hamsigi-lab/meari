@@ -39,7 +39,7 @@ async function callOpenAICompat(provider, model, system, userText, maxTokens, en
       { role: 'user', content: userText },
     ],
     max_tokens: maxTokens,
-    temperature: 0.9,
+    temperature: 0.6, // 0.9는 한국어 중 외국어 코드스위칭 유발 → 낮춤
   };
   if (provider === 'qwen') {
     // OpenRouter 식별 헤더(권장). (현재는 폴백 경로로만 사용)
@@ -70,7 +70,8 @@ async function callGemini(model, system, userText, maxTokens, env) {
   const body = {
     systemInstruction: { parts: [{ text: system }] },
     contents: [{ role: 'user', parts: [{ text: userText }] }],
-    generationConfig: { maxOutputTokens: maxTokens, temperature: 0.9 },
+    // thinkingBudget:0 → 2.5 Flash 내부 추론이 출력 토큰을 잡아먹어 잘리는 문제 방지
+    generationConfig: { maxOutputTokens: maxTokens, temperature: 0.6, thinkingConfig: { thinkingBudget: 0 } },
   };
   const res = await fetch(ENDPOINTS.gemini(model, key), {
     method: 'POST',
