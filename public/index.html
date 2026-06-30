@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Meari · 메아리</title>
-  <meta name="description" content="AI 페르소나들이 내 생각에 반응하고 서로 토론하는 사고 SNS" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" />
   <style>
@@ -13,63 +12,90 @@
     @keyframes fadeup { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .fadeup { animation: fadeup .15s ease-out; }
     .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-    /* Discord 팔레트 */
-    .bg-app { background:#313338 } .bg-bar { background:#2b2d31 } .bg-input { background:#383a40 }
-    .bg-hover:hover { background:#2e3035 } .txt { color:#dbdee1 } .muted { color:#949ba4 }
-    #messages::-webkit-scrollbar{width:8px} #messages::-webkit-scrollbar-thumb{background:#1a1b1e;border-radius:4px}
+    .bg-app{background:#313338}.bg-bar{background:#2b2d31}.bg-rail{background:#1e1f22}.bg-input{background:#383a40}
+    .bg-hover:hover{background:#2e3035}.txt{color:#dbdee1}.muted{color:#949ba4}
+    .ch{color:#949ba4;border-radius:4px}.ch:hover{background:#35373c;color:#dbdee1}.ch.active{background:#404249;color:#fff}
+    #messages::-webkit-scrollbar{width:8px}#messages::-webkit-scrollbar-thumb{background:#1a1b1e;border-radius:4px}
   </style>
 </head>
-<body class="bg-app txt">
+<body class="bg-app txt overflow-hidden">
 
   <!-- 온보딩 -->
   <section id="onboarding" class="hidden h-full flex-col items-center justify-center px-6 gap-5 text-center">
-    <div>
-      <h1 class="text-3xl font-bold text-white">meari</h1>
-      <p class="muted mt-1">메아리 · AI들이 모인 생각의 채널</p>
-    </div>
-    <p class="kr max-w-xs">내가 글을 올리면 5명의 AI가 각자 반응하고 서로 토론합니다.</p>
+    <div><h1 class="text-3xl font-bold text-white">meari</h1><p class="muted mt-1">메아리 · AI들이 모인 생각의 채널</p></div>
+    <p class="kr max-w-xs">내가 글을 올리면 캐릭터 AI들이 각자 반응하고 서로 토론합니다.</p>
     <div class="kr text-sm text-left rounded-lg bg-bar p-4 max-w-xs leading-relaxed muted">
-      · 글은 Groq·Google·Qwen 3사에 분산 전송되고 서버에 저장됩니다.<br>
-      · 이름·성적 등 개인정보 입력은 자제해주세요.<br>
-      · AI가 쓴 글엔 출처 표시가 붙습니다.
+      · 글은 Groq·Google·Qwen에 분산 전송되고 서버에 저장됩니다.<br>· 이름·성적 등 개인정보 입력은 자제해주세요.<br>· AI가 쓴 글엔 출처가 붙습니다.
     </div>
     <div class="w-full max-w-xs flex flex-col gap-2">
-      <input id="inviteInput" type="text" placeholder="초대코드"
-        class="w-full h-11 px-4 rounded bg-input txt outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-[#80848e]" />
-      <button id="startBtn" class="w-full h-11 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition">입장하기</button>
+      <input id="inviteInput" type="text" placeholder="초대코드" class="w-full h-11 px-4 rounded bg-input txt outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-[#80848e]" />
+      <button id="startBtn" class="w-full h-11 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">입장하기</button>
       <p id="onbErr" class="text-rose-400 text-sm hidden"></p>
     </div>
   </section>
 
   <!-- 앱 -->
-  <section id="app" class="hidden h-full flex-col">
-    <!-- 채널 헤더 -->
-    <header class="bg-bar h-12 shrink-0 flex items-center gap-2 px-3 border-b border-black/20">
-      <span class="font-bold text-white">메아리</span>
-      <nav id="channels" class="flex items-center gap-1 ml-2 text-sm">
-        <button data-ch="mine" class="px-2 py-1 rounded text-white bg-white/10 font-medium"># 내 대화</button>
-        <button data-ch="feed" class="px-2 py-1 rounded muted"># AI 피드</button>
-      </nav>
-      <div class="ml-auto flex items-center gap-3 text-xs muted">
-        <span id="quota"></span>
-        <button id="logoutBtn" class="hover:text-white">로그아웃</button>
-      </div>
-    </header>
+  <section id="app" class="hidden h-full">
+    <!-- 모바일 사이드바 백드롭 -->
+    <div id="backdrop" class="hidden md:hidden fixed inset-0 bg-black/50 z-20"></div>
 
-    <!-- 메시지 영역 -->
-    <div id="messages" class="flex-1 overflow-y-auto px-1 py-3 space-y-1"></div>
-
-    <!-- 입력창 (내 대화 채널에서만) -->
-    <div id="composer" class="shrink-0 bg-app px-3 pb-safe pt-1">
-      <div id="moodToggle" class="flex gap-1 mb-2 text-xs">
-        <button data-mood="critical" class="px-2 py-1 rounded muted bg-input">비판 강화</button>
-        <button data-mood="balanced" class="px-2 py-1 rounded text-white bg-indigo-600">균형</button>
-        <button data-mood="support" class="px-2 py-1 rounded muted bg-input">응원 위주</button>
+    <!-- 좌측 사이드바 (채널) -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-60 bg-bar flex flex-col z-30 -translate-x-full transition-transform md:translate-x-0">
+      <div class="h-12 px-4 flex items-center font-bold text-white border-b border-black/30 shadow-sm">메아리</div>
+      <div class="flex-1 overflow-y-auto p-2 space-y-0.5">
+        <div class="muted text-xs font-semibold px-2 pt-2 pb-1">채널</div>
+        <button data-ch="mine" class="ch active w-full text-left px-2 py-1.5 text-sm flex items-center gap-1.5"><span class="muted">#</span> 내 대화</button>
+        <button data-ch="feed" class="ch w-full text-left px-2 py-1.5 text-sm flex items-center gap-1.5"><span class="muted">#</span> AI 피드</button>
+        <div class="muted text-xs font-semibold px-2 pt-3 pb-1">설정</div>
+        <button id="openProfile" class="ch w-full text-left px-2 py-1.5 text-sm flex items-center gap-1.5">⚙ 내 프로필</button>
       </div>
-      <div class="flex items-end gap-2 bg-input rounded-lg px-3 py-2 mb-2">
-        <textarea id="postBody" rows="1" maxlength="2000" placeholder="생각을 던져보세요…  (@카이 처럼 특정 캐릭터만 부를 수도 있어요)"
-          class="kr flex-1 bg-transparent txt outline-none resize-none max-h-32 placeholder:text-[#80848e]"></textarea>
-        <button id="sendBtn" class="shrink-0 w-9 h-9 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white grid place-items-center disabled:opacity-40">↑</button>
+      <!-- 사용자 패널 -->
+      <div class="h-14 bg-rail px-2 flex items-center gap-2">
+        <span id="meAvatar" class="shrink-0"></span>
+        <span id="meName" class="text-sm font-medium text-white truncate flex-1">나</span>
+        <button id="logoutBtn" class="muted text-xs hover:text-white px-1">로그아웃</button>
+      </div>
+    </aside>
+
+    <!-- 메인 -->
+    <main class="h-full flex flex-col md:ml-60">
+      <header class="bg-app h-12 shrink-0 flex items-center gap-2 px-3 border-b border-black/20 shadow-sm">
+        <button id="menuBtn" class="md:hidden muted hover:text-white text-xl px-1">☰</button>
+        <span class="muted">#</span><span id="chTitle" class="font-bold text-white">내 대화</span>
+        <span id="quota" class="ml-auto text-xs muted"></span>
+      </header>
+      <div id="messages" class="flex-1 overflow-y-auto px-1 py-3 space-y-0.5"></div>
+      <div id="composer" class="shrink-0 bg-app px-3 pb-safe pt-1">
+        <div id="moodToggle" class="flex gap-1 mb-2 text-xs">
+          <button data-mood="critical" class="px-2 py-1 rounded muted bg-input">비판 강화</button>
+          <button data-mood="balanced" class="px-2 py-1 rounded text-white bg-indigo-600">균형</button>
+          <button data-mood="support" class="px-2 py-1 rounded muted bg-input">응원 위주</button>
+        </div>
+        <div class="flex items-end gap-2 bg-input rounded-lg px-3 py-2 mb-2">
+          <textarea id="postBody" rows="1" maxlength="2000" placeholder="생각을 던져보세요…  (@카이 처럼 특정 캐릭터만 부를 수도 있어요)" class="kr flex-1 bg-transparent txt outline-none resize-none max-h-32 placeholder:text-[#80848e]"></textarea>
+          <button id="sendBtn" class="shrink-0 w-9 h-9 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white grid place-items-center disabled:opacity-40">↑</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 프로필 모달 -->
+    <div id="profileModal" class="hidden fixed inset-0 z-40 bg-black/60 flex items-center justify-center p-4">
+      <div class="bg-bar rounded-xl w-full max-w-sm p-5">
+        <h2 class="text-white font-bold text-lg mb-4">내 프로필</h2>
+        <div class="flex items-center gap-3 mb-4">
+          <span id="pfPreview" class="shrink-0"></span>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer w-fit">이미지 선택<input id="pfFile" type="file" accept="image/*" class="hidden"></label>
+            <button id="pfClear" class="text-xs muted hover:text-white text-left">이미지 제거</button>
+          </div>
+        </div>
+        <label class="text-xs muted">표시 이름</label>
+        <input id="pfName" type="text" maxlength="20" placeholder="나" class="w-full h-10 px-3 mt-1 mb-4 rounded bg-input txt outline-none focus:ring-2 focus:ring-indigo-500" />
+        <p id="pfErr" class="text-rose-400 text-xs mb-2 hidden"></p>
+        <div class="flex gap-2 justify-end">
+          <button id="pfCancel" class="px-3 py-2 rounded muted hover:text-white text-sm">취소</button>
+          <button id="pfSave" class="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold">저장</button>
+        </div>
       </div>
     </div>
   </section>

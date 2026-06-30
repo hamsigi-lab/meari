@@ -22,7 +22,9 @@ CREATE TABLE IF NOT EXISTS user_prefs (
   account_id      TEXT PRIMARY KEY REFERENCES accounts(id),
   interests       TEXT,    -- JSON 배열: 관심사 태그
   muted_personas  TEXT,    -- JSON 배열: 음소거 페르소나 id
-  mood            TEXT DEFAULT 'balanced'  -- 'critical'|'balanced'|'support'
+  mood            TEXT DEFAULT 'balanced',  -- 'critical'|'balanced'|'support'
+  display_name    TEXT,
+  avatar          TEXT      -- data URL(소형) 또는 null
 );
 
 -- 글 (사용자 글 + AI 자체 글) — plan §6.2 Post

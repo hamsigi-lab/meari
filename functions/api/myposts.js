@@ -21,6 +21,7 @@ export async function onRequestGet({ request, env }) {
   for (const c of comments) (byPost[c.post_id] ||= []).push({
     id: c.id, personaId: c.author_persona_id, parentCommentId: c.parent_comment_id,
     depth: c.depth, body: c.body, provider: c.provider, needsVerification: !!c.needs_verification,
+    createdAt: c.created_at,
   });
 
   return json({
