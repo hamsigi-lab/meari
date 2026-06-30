@@ -117,13 +117,14 @@ export async function callPersona(persona, system, userText, env) {
     const model = provider === persona.provider ? persona.model : FALLBACK_MODEL[provider];
     try {
       let text = await callModel(provider, model, system, userText, persona.maxTokens, env);
-      // 외국어(중국어/일본어) 누출 시 1회만 재생성 (확률적 — 보통 깨끗해짐)
-      if (CJK.test(text)) {
-        try {
-          const t2 = await callModel(provider, model, system, userText, persona.maxTokens, env);
-          if (!CJK.test(t2)) text = t2;
-        } catch { /* 재시도 실패 무시 */ }
+      // 외국어(중국어/일본어) 누출 시 최대 2회 재생성, 그래도 남으면 마지막 수단으로 제거
+      let tries = 0;
+      while (CJK.test(text) && tries < 2) {
+        tries++;
+        try { text = await callModel(provider, model, system, userText, persona.maxTokens, env); }
+        catch { break; }
       }
+      if (CJK.test(text)) text = stripCJK(text);
       return { text, provider, fellBack: provider !== persona.provider };
     } catch (e) {
       lastErr = e;
@@ -148,4 +149,12 @@ async function safeText(res) {
 // reasoning 모델의 <think>…</think> 흔적 제거(안전장치)
 function stripThink(s) {
   return String(s).replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/^\s*<\/?think>\s*/i, '');
+}
+// 최후 수단: 남은 한자/일본어 문자 제거 + 공백·문장부호 정리
+function stripCJK(s) {
+  return String(s)
+    .replace(/[㐀-鿿぀-ヿ]+/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.!?…)\]])/g, '$1')
+    .trim();
 }
