@@ -8,7 +8,13 @@ let postsToday = 0;
 
 const token = () => localStorage.getItem(TOKEN_KEY);
 const authHeaders = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` });
-const NAME_COLOR = { hando: 'text-rose-400', iruri: 'text-amber-300', parkhs: 'text-sky-300', mumyeong: 'text-violet-400', kangsb: 'text-slate-200' };
+const NAME_COLOR = { kai: 'text-rose-400', leo: 'text-amber-300', nathan: 'text-cyan-300', hyun: 'text-violet-400', sera: 'text-slate-200' };
+// @멘션 파싱 — 있으면 그 캐릭터만, 없으면 전체
+function selectTargets(body) {
+  const arr = Object.values(PERSONAS);
+  const hit = arr.filter((p) => [p.name, p.nickname, p.handle].filter(Boolean).some((t) => body.includes('@' + t)));
+  return hit.length ? hit : arr;
+}
 const ME = { name: '나', avatar: { glyph: '나', bg: 'bg-indigo-600', text: 'text-white' }, color: 'text-white' };
 
 // ── DOM 헬퍼 (innerHTML 미사용) ──
@@ -138,7 +144,7 @@ async function send() {
   const { block, replies } = threadBlock(ME, body);
   $('#messages').prepend(block); // 최신 위로
 
-  const ordered = Object.values(PERSONAS).sort((a, b) => a.arrivalDelayMs - b.arrivalDelayMs);
+  const ordered = selectTargets(body).sort((a, b) => a.arrivalDelayMs - b.arrivalDelayMs);
   const slots = {};
   for (const m of ordered) { const s = indicatorRow(personaMeta(m.id)); replies.appendChild(s); slots[m.id] = s; }
   ta.value = ''; ta.style.height = 'auto';

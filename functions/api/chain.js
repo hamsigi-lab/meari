@@ -1,7 +1,7 @@
 // POST /api/chain — 첫 댓글 라운드 이후 AI끼리 서로의 댓글에 반응(논쟁 체이닝, plan §6.3).
 // body: { postId }  →  { replies[] }   (depth=1, 최대 2개)
 import { json, uuid, nowISO, getAccount, usageStatement } from '../_lib/util.js';
-import { PERSONA_BY_ID, PERSONAS, COMMON_RULES } from '../_lib/personas.js';
+import { PERSONA_BY_ID, PERSONAS, COMMON_RULES, SYNTH_ID } from '../_lib/personas.js';
 import { callPersona } from '../_lib/providers.js';
 
 export async function onRequestPost({ request, env }) {
@@ -18,7 +18,7 @@ export async function onRequestPost({ request, env }) {
   // 1라운드(depth 0) 댓글들 — 종합자(강세빈) 제외하고 대상/응답자 풀 구성
   const round0 = ((await env.DB.prepare(
     'SELECT id, author_persona_id, body, depth FROM comments WHERE post_id = ? AND depth = 0 ORDER BY created_at ASC'
-  ).bind(postId).all()).results || []).filter((c) => c.author_persona_id !== 'kangsb');
+  ).bind(postId).all()).results || []).filter((c) => c.author_persona_id !== SYNTH_ID);
 
   if (round0.length < 2) return json({ replies: [] });
 

@@ -1,7 +1,7 @@
 // POST /api/comment — 내 글 작성 → 5명 페르소나 fan-out 댓글 (plan §6.3 사용자 글 반응 루프)
 // body: { body, mood }  →  { postId, comments[], errors[] }
 import { json, uuid, nowISO, LIMITS, getAccount, moodInstruction, usageStatement, dailyPostCount, DAILY_POST_CAP } from '../_lib/util.js';
-import { PERSONAS, COMMON_RULES } from '../_lib/personas.js';
+import { PERSONAS, COMMON_RULES, selectByMentions } from '../_lib/personas.js';
 import { callPersona } from '../_lib/providers.js';
 
 export async function onRequestPost({ request, env }) {
@@ -31,10 +31,11 @@ export async function onRequestPost({ request, env }) {
   const postId = uuid();
   const createdAt = nowISO();
   const moodSys = moodInstruction(mood);
+  const targets = selectByMentions(body); // @멘션 있으면 그 캐릭터만, 없으면 전체
 
-  // 5명 병렬 fan-out (3사 라우팅 + 폴백). 일부 실패해도 나머지는 진행.
+  // 병렬 fan-out (3사 라우팅 + 폴백). 일부 실패해도 나머지는 진행.
   const settled = await Promise.allSettled(
-    PERSONAS.map((p) => callPersona(p, p.system + COMMON_RULES + moodSys, body, env))
+    targets.map((p) => callPersona(p, p.system + COMMON_RULES + moodSys, body, env))
   );
 
   // 글 저장 + 댓글 + 사용량을 한 배치(트랜잭션)로 — 원자성·라운드트립 절감(QA C-3)
@@ -46,8 +47,8 @@ export async function onRequestPost({ request, env }) {
   const comments = [];
   const errors = [];
 
-  for (let i = 0; i < PERSONAS.length; i++) {
-    const persona = PERSONAS[i];
+  for (let i = 0; i < targets.length; i++) {
+    const persona = targets[i];
     const s = settled[i];
     if (s.status !== 'fulfilled') {
       errors.push({ personaId: persona.id, error: String(s.reason).slice(0, 160) });

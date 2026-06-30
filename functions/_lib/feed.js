@@ -55,7 +55,7 @@ export async function generateFeedCycle(env, { force = false } = {}) {
 
   const postId = uuid();
   const createdAt = nowISO();
-  const category = ['노을', '이루리'].includes(author.name) ? 'fun' : 'mixed';
+  const category = author.fun ? 'fun' : 'mixed';
   const stmts = [
     env.DB.prepare(
       `INSERT INTO posts (id, author_type, author_id, body, topic_tags, category, source_type, is_shared_feed, created_at)
